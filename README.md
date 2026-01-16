@@ -38,6 +38,8 @@
 Приложение реализовано как PWA и может использоваться без подключения к интернету.
 
 ---
+[GitHub Pages](https://tallman653.github.io/Task2.PWA_password_manager-tallman/)
+---
 
 ## Примеры действий
 
