@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="[TMCor] PWA Password Manager">
+    <meta name="theme-color" content="#1976d2">
+    <title>[TMCor] Password Manager</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="img/icon-192.png">
+    <link rel="apple-touch-icon" href="img/icon-192.png">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Окно: Генератор паролей -->
+    <div id="generatorScreen" class="screen active">
+        <header class="header">
+            <h1>Генератор паролей</h1>
+            <button id="toListBtn" class="nav-btn" title="Список паролей">
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path fill="currentColor" d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z"/>
+                </svg>
+                <span>Список паролей</span>
+            </button>
+        </header>
+
+        <main class="main-content">
+            <div class="password-display">
+                <input type="text" id="passwordOutput" class="password-field" readonly placeholder="Нажмите 'Генерировать'">
+                <button id="copyBtn" class="copy-btn" title="Копировать">
+                    <svg viewBox="0 0 24 24" width="20" height="20">
+                        <path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="complexity-options">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="uppercase" checked>
+                    <span>A-Z (Заглавные)</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="lowercase" checked>
+                    <span>a-z (Строчные)</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="numbers" checked>
+                    <span>0-9 (Цифры)</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="symbols" checked>
+                    <span>!@#$%^&* (Спецсимволы)</span>
+                </label>
+            </div>
+
+            <div class="length-control">
+                <label for="lengthSlider">Длина пароля:</label>
+                <div class="length-input-group">
+                    <button id="minusBtn" class="length-btn">−</button>
+                    <input type="range" id="lengthSlider" min="4" max="64" value="16" class="slider">
+                    <button id="plusBtn" class="length-btn">+</button>
+                </div>
+                <div class="length-display">
+                    <input type="number" id="lengthValue" min="4" max="64" value="16" class="length-input">
+                    <span>символов</span>
+                </div>
+            </div>
+
+            <button id="generateBtn" class="primary-btn">Генерировать пароль</button>
+            <button id="saveBtn" class="secondary-btn">Сохранить пароль</button>
+        </main>
+    </div>
+
+    <!-- Окно: Список паролей -->
+    <div id="listScreen" class="screen">
+        <header class="header">
+            <h1>Список паролей</h1>
+            <button id="toGeneratorBtn" class="nav-btn" title="Генератор паролей">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor">
+                <circle cx="7" cy="12" r="3"/>
+                <path d="M10 12h8l-1 1v2h-2v-2h-2v-1"/>
+                </svg>
+                <span>Генератор</span>
+            </button>
+        </header>
+
+        <main class="main-content">
+            <div id="passwordsList" class="passwords-list">
+                <!-- Пароли будут добавлены сюда -->
+            </div>
+            <div id="emptyMessage" class="empty-message">
+                Нет сохраненных паролей. Перейдите в генератор для создания.
+            </div>
+        </main>
+    </div>
+
+    <!-- Модальное окно: Сохранить пароль -->
+    <div id="saveModal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <h2>Сохранить пароль</h2>
+            <label for="loginInput">Введите название/логин:</label>
+            <input type="text" id="loginInput" class="modal-input" placeholder="Например: Gmail, Яндекс">
+            <label for="urlInput">URL (опционально):</label>
+            <input type="text" id="urlInput" class="modal-input" placeholder="https://example.com">
+            <div class="modal-buttons">
+                <button id="savePwdBtn" class="modal-btn primary">Сохранить</button>
+                <button id="cancelSaveBtn" class="modal-btn secondary">Отменить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Просмотр пароля -->
+    <div id="viewModal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <h2>Пароль</h2>
+            <div class="password-view">
+                <label>Логин/Название:</label>
+                <p id="viewLogin" class="password-info"></p>
+                <label>Пароль:</label>
+                <div class="password-copy-group">
+                    <p id="viewPassword" class="password-info"></p>
+                    <button id="viewCopyBtn" class="copy-btn small">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                        </svg>
+                    </button>
+                </div>
+                <label>URL:</label>
+                <div class="password-copy-group">
+                    <p id="viewUrl" class="password-info"></p>
+                    <button id="viewUrlBtn" class="url-visit-btn" title="Перейти на сайт">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="currentColor" d="M19 19H5V5h7V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83l1.41 1.41L19 6.41V10h2V3h-7z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button id="closeViewBtn" class="modal-btn secondary">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Изменение пароля -->
+    <div id="editModal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <h2>Редактировать пароль</h2>
+            <button id="deleteEditBtn" class="modal-delete-btn" title="Удалить пароль">
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-9l-1 1H5v2h14V4z"/>
+                </svg>
+            </button>
+            <label for="editLoginInput">Название/логин:</label>
+            <input type="text" id="editLoginInput" class="modal-input">
+            <label for="editPasswordInput">Пароль:</label>
+            <input type="text" id="editPasswordInput" class="modal-input">
+            <label for="editUrlInput">URL (опционально):</label>
+            <div class="url-input-group">
+                <input type="text" id="editUrlInput" class="modal-input">
+                <button id="visitUrlBtn" class="url-visit-btn" title="Перейти на сайт">
+                    <svg viewBox="0 0 24 24" width="20" height="20">
+                        <path fill="currentColor" d="M19 19H5V5h7V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83l1.41 1.41L19 6.41V10h2V3h-7z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-buttons">
+                <button id="updatePwdBtn" class="modal-btn primary">Сохранить</button>
+                <button id="cancelEditBtn" class="modal-btn secondary">Отменить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Подтверждение удаления -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <h2>Удалить пароль?</h2>
+            <p>Вы уверены, что хотите удалить "<span id="deleteItemName"></span>"?</p>
+            <p class="warning-text">После этого действия пароль будет невозможно восстановить!</p>
+            <div class="modal-buttons">
+                <button id="confirmDeleteBtn" class="modal-btn danger" disabled>Удалить</button>
+                <button id="cancelDeleteBtn" class="modal-btn secondary">Отменить</button>
+            </div>
+            <div class="delete-timer">Кнопка удаления будет доступна через <span id="deleteTimer">3</span> сек.</div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Механизм - Register Service 
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js').catch(err => {
+                console.log('Service Worker registration failed:', err);
+            });
+        }
+    </script>
+</body>
+</html>
